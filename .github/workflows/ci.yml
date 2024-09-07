@@ -55,7 +55,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
-          binary_name: launcher_extras
+          binary_name: launcher-extras
           overwrite: true
           release_tag: latest
 
@@ -79,4 +79,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
-          binary_name: launcher_extras
+          binary_name: launcher-extras
