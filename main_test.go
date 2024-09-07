@@ -6,9 +6,9 @@ import (
 
 	"bytes"
 	"context"
-	ddocker "github.com/featheredtoast/launcher-extras"
-	"github.com/discourse/discourse_docker/launcher_go/v2/utils"
 	"github.com/discourse/discourse_docker/launcher_go/v2/config"
+	"github.com/discourse/discourse_docker/launcher_go/v2/utils"
+	ddocker "github.com/featheredtoast/launcher-extras"
 	"os"
 )
 

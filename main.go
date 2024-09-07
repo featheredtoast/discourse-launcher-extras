@@ -13,10 +13,10 @@ import (
 )
 
 type Cli struct {
-	Version      kong.VersionFlag   `help:"Show version."`
-	ConfDir      string             `default:"./containers" help:"Discourse pups config directory." predictor:"dir"`
-	TemplatesDir string             `default:"." help:"Home project directory containing a templates/ directory which in turn contains pups yaml templates." predictor:"dir"`
-	BuildDir     string             `default:"./tmp" help:"Temporary build folder for building images." predictor:"dir"`
+	Version       kong.VersionFlag `help:"Show version."`
+	ConfDir       string           `default:"./containers" help:"Discourse pups config directory." predictor:"dir"`
+	TemplatesDir  string           `default:"." help:"Home project directory containing a templates/ directory which in turn contains pups yaml templates." predictor:"dir"`
+	BuildDir      string           `default:"./tmp" help:"Temporary build folder for building images." predictor:"dir"`
 	DockerCompose DockerComposeCmd `cmd:"" name:"compose" help:"Create docker compose setup in the output {output-directory}/{config}/. The builder generates a docker-compose.yaml, Dockerfile, config.yaml, and an env file for you to source .envrc. Run with 'source .envrc; docker compose up'."`
 	ConcourseJob  ConcourseJobCmd  `cmd:"" name:"concourse-job" help:"Print concourse job config"`
 
