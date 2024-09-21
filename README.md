@@ -15,8 +15,10 @@ Downside, this means all env is shared between containers, probably. and value o
 
 Generates a concourse directory for build jobs.
 
-it generates a yaml file with 3 key/value pairs:
+it generates a yaml file with the following key/value pairs:
 
+* from_namespace the namespace to build from, eg: discourse/base
+* from_tag: the tag to build from eg: 2.0.20240825-0027
 * the dockerfile used to build
 * the source pups yaml config (as a string)
 * concourse job. This can be used in a concourse job in the following example:
@@ -24,6 +26,7 @@ it generates a yaml file with 3 key/value pairs:
 Let's assume we ran the following: `launcher-extras concourse-job --conf-dir {path-to-container-config} --templates-dir discourse_docker --output job-config/config.yaml {site-name}` and have job-config/config.yaml be the output of the `concourse-job` command
 
 We can then use a job skeleton to run the included task:
+(note: additional vars are needed: docker_repository eg `discourse/fully_powered`, docker username and password)
 
 contents of `job-skeleton/skeleton.yaml`:
 ```
@@ -40,10 +43,10 @@ resources:
   - name: dockerhub-image
     type: registry-image
     source:
-      repository: (docker repository)
+      repository: ((docker_repository))
       tag: latest
-      username: (username)
-      password: (password)
+      username: ((username))
+      password: ((password))
   - name: docker-config
     type: static
     source:
