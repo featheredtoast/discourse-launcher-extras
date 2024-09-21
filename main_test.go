@@ -36,7 +36,7 @@ var _ = Describe("Generate", func() {
 	})
 
 	It("should output docker compose cmd to config name's subdir", func() {
-		runner := ddocker.DockerComposeCmd{Config: "test",
+		runner := ddocker.DockerComposeCmd{Config: []string{"test"},
 			OutputDir: testDir}
 		err := runner.Run(cli, &ctx)
 		Expect(err).To(BeNil())
@@ -46,7 +46,7 @@ var _ = Describe("Generate", func() {
 	})
 
 	It("should force create output parent folders", func() {
-		runner := ddocker.DockerComposeCmd{Config: "test",
+		runner := ddocker.DockerComposeCmd{Config: []string{"test"},
 			OutputDir: testDir + "/subfolder/sub-subfolder"}
 		err := runner.Run(cli, &ctx)
 		Expect(err).To(BeNil())

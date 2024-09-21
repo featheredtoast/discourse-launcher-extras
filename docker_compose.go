@@ -150,24 +150,34 @@ func ExportEnv(config config.Config) string {
 	return strings.Join(builder, "\n")
 }
 
+//TODO: main docker-compose should include secondary docker-compose files inside it somehow.
 type DockerComposeCmd struct {
 	OutputDir string `name:"output dir" default:"./compose" short:"o" help:"Output dir for docker compose files." predictor:"dir"`
 	BakeEnv   bool   `short:"e" help:"Bake in the configured environment to image after build."`
 
-	Config string `arg:"" name:"config" help:"config" predictor:"config"`
+	Config []string `arg:"" name:"config" help:"config to include in the docker-compose. The first config is assuemd to be the main container, and will be the parent folder of the ouput project" predictor:"config"`
 }
 
 func (r *DockerComposeCmd) Run(cli *Cli, ctx *context.Context) error {
-	config, err := config.LoadConfig(cli.ConfDir, r.Config, true, cli.TemplatesDir)
-	if err != nil {
-		return errors.New("YAML syntax error. Please check your containers/*.yml config files.")
+	if len(r.Config) < 1 {
+		return errors.New("No config given, need at least one container name.")
 	}
-	dir := r.OutputDir + "/" + r.Config
+
+	dir := r.OutputDir + "/" + r.Config[0]
 	if err := os.MkdirAll(dir, 0755); err != nil && !os.IsExist(err) {
 		return err
 	}
-	if err := WriteDockerCompose(*config, dir, r.BakeEnv); err != nil {
-		return err
+
+	configs := []*config.Config{}
+	for _, configName := range(r.Config) {
+		config, err := config.LoadConfig(cli.ConfDir, configName, true, cli.TemplatesDir)
+		if err != nil {
+			return errors.New("YAML syntax error. Please check your containers/*.yml config files.")
+		}
+		if err := WriteDockerCompose(*config, dir, r.BakeEnv); err != nil {
+			return err
+		}
+		configs = append(configs, config)
 	}
 	return nil
 }
