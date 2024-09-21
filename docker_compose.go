@@ -123,7 +123,6 @@ func WriteDockerCompose(configs []config.Config, dir string, bakeEnv bool) error
 	if err != nil {
 		return errors.New("error marshalling compose file to write docker-compose.yaml")
 	}
-	// TODO: docker-compose name ???
 	if err := os.WriteFile(strings.TrimRight(dir, "/")+"/"+"docker-compose.yaml", yaml, 0660); err != nil {
 		return errors.New("error writing compose file docker-compose.yaml")
 	}
@@ -161,7 +160,6 @@ func ExportEnv(config config.Config) string {
 	return strings.Join(builder, "\n")
 }
 
-//TODO: docker-compose should include all services...somehow. 
 type DockerComposeCmd struct {
 	OutputDir string `name:"output dir" default:"./compose" short:"o" help:"Output dir for docker compose files." predictor:"dir"`
 	BakeEnv   bool   `short:"e" help:"Bake in the configured environment to image after build."`
