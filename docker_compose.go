@@ -16,11 +16,8 @@ import (
 )
 
 type DockerComposeYaml struct {
-	Services ComposeAppService
+	Services map[string]ComposeService
 	Volumes  map[string]*interface{}
-}
-type ComposeAppService struct {
-	App ComposeService
 }
 type ComposeService struct {
 	Image       string
@@ -38,14 +35,7 @@ type ComposeBuild struct {
 	No_Cache   bool
 }
 
-func WriteDockerCompose(config config.Config, dir string, bakeEnv bool) error {
-	if err := WriteEnvConfig(config, dir); err != nil {
-		return err
-	}
-	pupsArgs := "--skip-tags=precompile,migrate,db"
-	if err := WriteDockerfile(config, dir, pupsArgs, bakeEnv); err != nil {
-		return err
-	}
+func DockerComposeService(config config.Config) ComposeService {
 	labels := map[string]string{}
 	for k, v := range config.Labels {
 		labels[k] = v
@@ -64,14 +54,8 @@ func WriteDockerCompose(config config.Config, dir string, bakeEnv bool) error {
 	}
 	slices.Sort(links)
 	volumes := []string{}
-	composeVolumes := map[string]*interface{}{}
 	for _, v := range config.Volumes {
 		volumes = append(volumes, v.Volume.Host+":"+v.Volume.Guest)
-		// if this is a docker volume (vs a bind mount), add to global volume list
-		matched, _ := regexp.MatchString(`^[A-Za-z]`, v.Volume.Host)
-		if matched {
-			composeVolumes[v.Volume.Host] = nil
-		}
 	}
 	slices.Sort(volumes)
 	ports := []string{}
@@ -85,23 +69,49 @@ func WriteDockerCompose(config config.Config, dir string, bakeEnv bool) error {
 		args = append(args, k)
 	}
 	slices.Sort(args)
-	compose := &DockerComposeYaml{
-		Services: ComposeAppService{
-			App: ComposeService{
-				Image: utils.DefaultNamespace + "/" + config.Name,
-				Build: ComposeBuild{
-					Dockerfile: "./" + config.Name + ".dockerfile",
-					Labels:     labels,
-					Shm_Size:   "512m",
-					Args:       args,
-					No_Cache:   true,
-				},
-				Environment: env,
-				Links:       links,
-				Volumes:     volumes,
-				Ports:       ports,
-			},
+
+	return ComposeService{
+		Image: utils.DefaultNamespace + "/" + config.Name,
+		Build: ComposeBuild{
+			Dockerfile: "./" + config.Name + ".dockerfile",
+			Labels:     labels,
+			Shm_Size:   "512m",
+			Args:       args,
+			No_Cache:   true,
 		},
+		Environment: env,
+		Links:       links,
+		Volumes:     volumes,
+		Ports:       ports,
+	}
+}
+
+func WriteDockerCompose(configs []config.Config, dir string, bakeEnv bool) error {
+	//TODO: env config should be a merge of all env across all configs.
+	if err := WriteEnvConfig(configs[0], dir); err != nil {
+		return err
+	}
+	pupsArgs := "--skip-tags=precompile,migrate,db"
+
+	composeServices := map[string]ComposeService{}
+	composeVolumes := map[string]*interface{}{}
+	for _, config := range configs {
+		if err := WriteDockerfile(config, dir, pupsArgs, bakeEnv); err != nil {
+			return err
+		}
+		composeServices[config.Name] = DockerComposeService(config)
+
+		for _, v := range config.Volumes {
+			// if this is a docker volume (vs a bind mount), add to global volume list
+			matched, _ := regexp.MatchString(`^[A-Za-z]`, v.Volume.Host)
+			if matched {
+				composeVolumes[v.Volume.Host] = nil
+			}
+		}
+	}
+
+	compose := &DockerComposeYaml{
+		Services: composeServices,
 		Volumes: composeVolumes,
 	}
 
@@ -113,6 +123,7 @@ func WriteDockerCompose(config config.Config, dir string, bakeEnv bool) error {
 	if err != nil {
 		return errors.New("error marshalling compose file to write docker-compose.yaml")
 	}
+	// TODO: docker-compose name ???
 	if err := os.WriteFile(strings.TrimRight(dir, "/")+"/"+"docker-compose.yaml", yaml, 0660); err != nil {
 		return errors.New("error writing compose file docker-compose.yaml")
 	}
@@ -150,7 +161,7 @@ func ExportEnv(config config.Config) string {
 	return strings.Join(builder, "\n")
 }
 
-//TODO: main docker-compose should include secondary docker-compose files inside it somehow.
+//TODO: docker-compose should include all services...somehow. 
 type DockerComposeCmd struct {
 	OutputDir string `name:"output dir" default:"./compose" short:"o" help:"Output dir for docker compose files." predictor:"dir"`
 	BakeEnv   bool   `short:"e" help:"Bake in the configured environment to image after build."`
@@ -168,16 +179,16 @@ func (r *DockerComposeCmd) Run(cli *Cli, ctx *context.Context) error {
 		return err
 	}
 
-	configs := []*config.Config{}
+	configs := []config.Config{}
 	for _, configName := range(r.Config) {
 		config, err := config.LoadConfig(cli.ConfDir, configName, true, cli.TemplatesDir)
 		if err != nil {
 			return errors.New("YAML syntax error. Please check your containers/*.yml config files.")
 		}
-		if err := WriteDockerCompose(*config, dir, r.BakeEnv); err != nil {
+		configs = append(configs, *config)
+	}
+	if err := WriteDockerCompose(configs, dir, r.BakeEnv); err != nil {
 			return err
 		}
-		configs = append(configs, config)
-	}
 	return nil
 }
