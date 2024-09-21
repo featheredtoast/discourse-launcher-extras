@@ -57,7 +57,7 @@ var _ = Describe("Generate", func() {
 
 	It("can write a docker compose setup", func() {
 		conf, _ := config.LoadConfig("./test/containers", "test", true, "./test")
-		ddocker.WriteDockerCompose(*conf, testDir, false)
+		ddocker.WriteDockerCompose([]config.Config{*conf}, testDir, false)
 		out, err := os.ReadFile(testDir + "/.envrc")
 		Expect(err).To(BeNil())
 		Expect(string(out[:])).To(ContainSubstring("export DISCOURSE_HOSTNAME"))
