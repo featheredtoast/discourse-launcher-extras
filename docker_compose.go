@@ -51,12 +51,13 @@ func WriteDockerCompose(config config.Config, dir string, bakeEnv bool) error {
 		labels[k] = v
 	}
 	env := map[string]string{}
+	env["CREATE_DB_ON_BOOT"] = "1"
+	env["MIGRATE_ON_BOOT"] = "1"
+	env["PRECOMPILE_ON_BOOT"] = "1"
+
 	for k, v := range config.Env {
 		env[k] = v
 	}
-	env["CREATE_DB_ON_BOOT"] = "1"
-	env["MIGRATE_ON_BOOT"] = "1"
-
 	links := []string{}
 	for _, v := range config.Links {
 		links = append(links, v.Link.Name+":"+v.Link.Alias)
