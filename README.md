@@ -6,14 +6,17 @@ Extra scripts for other possibly useful commands from launcher2 rewrite
 
 Allows easier exporting of configuration from discourse's pups configuration to a docker compose configuration.
 
-Still probably needs some way of exporting multi containers...
+Allows multiple build containers: `launcher-extras compose app data`
 
-TODO: Maybe compose can take in multiple containers, and combine them all in one.
-Downside, this means all env is shared between containers, probably. and value of all env needs to be the same.
+### Limitations
+
+compose's build uses a common env - all shared env keys need to be the same (EG LANG).
+
+The written .envrc will only work with the same key/values, but won't work if each container are assumng different values.
 
 ## Concourse generation
 
-Generates a concourse directory for build jobs.
+Generates a concourse directory to build an image for a job.
 
 it generates a yaml file with the following key/value pairs:
 
