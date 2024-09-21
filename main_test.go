@@ -29,7 +29,6 @@ var _ = Describe("Generate", func() {
 		cli = &ddocker.Cli{
 			ConfDir:      "./test/containers",
 			TemplatesDir: "./test",
-			BuildDir:     testDir,
 		}
 	})
 	AfterEach(func() {
