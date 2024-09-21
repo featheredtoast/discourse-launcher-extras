@@ -90,7 +90,7 @@ func WriteDockerCompose(config config.Config, dir string, bakeEnv bool) error {
 			App: ComposeService{
 				Image: utils.DefaultNamespace + "/" + config.Name,
 				Build: ComposeBuild{
-					Dockerfile: "./Dockerfile",
+					Dockerfile: "./" + config.Name + ".dockerfile",
 					Labels:     labels,
 					Shm_Size:   "512m",
 					Args:       args,
@@ -124,7 +124,7 @@ func WriteDockerfile(config config.Config, dir string, pupsArgs string, bakeEnv 
 		return err
 	}
 
-	file := strings.TrimRight(dir, "/") + "/" + "Dockerfile"
+	file := strings.TrimRight(dir, "/") + "/" + config.Name + ".dockerfile"
 	if err := os.WriteFile(file, []byte(config.Dockerfile(pupsArgs, bakeEnv)), 0660); err != nil {
 		return errors.New("error writing dockerfile Dockerfile " + file)
 	}
