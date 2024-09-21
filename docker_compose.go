@@ -87,8 +87,7 @@ func DockerComposeService(config config.Config) ComposeService {
 }
 
 func WriteDockerCompose(configs []config.Config, dir string, bakeEnv bool) error {
-	//TODO: env config should be a merge of all env across all configs.
-	if err := WriteEnvConfig(configs[0], dir); err != nil {
+	if err := WriteEnvConfig(configs, dir); err != nil {
 		return err
 	}
 	pupsArgs := "--skip-tags=precompile,migrate,db"
@@ -141,22 +140,29 @@ func WriteDockerfile(config config.Config, dir string, pupsArgs string, bakeEnv 
 	return nil
 }
 
-func WriteEnvConfig(config config.Config, dir string) error {
+func WriteEnvConfig(configs []config.Config, dir string) error {
 	file := strings.TrimRight(dir, "/") + "/.envrc"
-	if err := os.WriteFile(file, []byte(ExportEnv(config)), 0660); err != nil {
+	if err := os.WriteFile(file, []byte(ExportEnv(configs)), 0660); err != nil {
 		return errors.New("error writing export env " + file)
 	}
 	return nil
 }
 
-func ExportEnv(config config.Config) string {
+func ExportEnv(configs []config.Config) string {
 	builder := []string{}
-	for k, v := range config.Env {
-		val := strings.ReplaceAll(v, "\\", "\\\\")
-		val = strings.ReplaceAll(val, "\"", "\\\"")
-		builder = append(builder, "export "+k+"=\""+val+"\"")
+	// prioritize the first configs for env
+	slices.Reverse(configs)
+	for _, config := range configs {
+		// Sort env within a config
+		configEnv := []string{}
+		for k, v := range config.Env {
+			val := strings.ReplaceAll(v, "\\", "\\\\")
+			val = strings.ReplaceAll(val, "\"", "\\\"")
+			configEnv = append(configEnv, "export "+k+"=\""+val+"\"")
+		}
+		slices.Sort(configEnv)
+		builder = append(builder, strings.Join(configEnv, "\n"))
 	}
-	slices.Sort(builder)
 	return strings.Join(builder, "\n")
 }
 
