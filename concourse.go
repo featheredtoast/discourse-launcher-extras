@@ -100,7 +100,7 @@ func GenConcourseConfig(config config.Config) string {
 	concourseConfig := &ConcourseConfig{
 		FromNamespace: namespace,
 		FromTag:       tag,
-		Dockerfile:    config.Dockerfile("--skip-tags=precompile,migrate,db", false),
+		Dockerfile:    config.Dockerfile("--skip-tags=precompile,migrate,db", false, "config.yaml"),
 		ConcourseTask: getConcourseTask(config),
 		Config:        config.Yaml(),
 	}

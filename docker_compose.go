@@ -129,12 +129,12 @@ func WriteDockerCompose(configs []config.Config, dir string, bakeEnv bool) error
 }
 
 func WriteDockerfile(config config.Config, dir string, pupsArgs string, bakeEnv bool) error {
-	if err := config.WriteYamlConfig(dir); err != nil {
+	if err := config.WriteYamlConfig(dir, config.Name+".yaml"); err != nil {
 		return err
 	}
 
 	file := strings.TrimRight(dir, "/") + "/" + config.Name + ".dockerfile"
-	if err := os.WriteFile(file, []byte(config.Dockerfile(pupsArgs, bakeEnv)), 0660); err != nil {
+	if err := os.WriteFile(file, []byte(config.Dockerfile(pupsArgs, bakeEnv, config.Name+".yaml")), 0660); err != nil {
 		return errors.New("error writing dockerfile Dockerfile " + file)
 	}
 	return nil
