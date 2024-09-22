@@ -100,6 +100,8 @@ func GenConcourseConfig(config config.Config) string {
 	concourseConfig := &ConcourseConfig{
 		FromNamespace: namespace,
 		FromTag:       tag,
+		//TODO: after https://github.com/discourse/discourse_docker/pull/872 is merged we can:
+		//Dockerfile:    config.Dockerfile("--skip-tags=precompile,migrate,db", false, "config.yaml"),
 		Dockerfile:    config.Dockerfile("--skip-tags=precompile,migrate,db", false),
 		ConcourseTask: getConcourseTask(config),
 		Config:        config.Yaml(),

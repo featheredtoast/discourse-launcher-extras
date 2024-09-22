@@ -129,11 +129,17 @@ func WriteDockerCompose(configs []config.Config, dir string, bakeEnv bool) error
 }
 
 func WriteDockerfile(config config.Config, dir string, pupsArgs string, bakeEnv bool) error {
+	//TODO: need to edit this and write it somewhere else
+	//after https://github.com/discourse/discourse_docker/pull/872 is merged we can:
+	//if err := config.WriteYamlConfig(dir, config.Name + ".yaml"); err != nil {
 	if err := config.WriteYamlConfig(dir); err != nil {
 		return err
 	}
 
 	file := strings.TrimRight(dir, "/") + "/" + config.Name + ".dockerfile"
+	//TODO: need to somehow also copy the correct config.yaml... each separate somehow hurumph.
+	//after https://github.com/discourse/discourse_docker/pull/872 is merged we can:
+	//if err := os.WriteFile(file, []byte(config.Dockerfile(pupsArgs, bakeEnv, config.Name + ".yaml")), 0660); err != nil {
 	if err := os.WriteFile(file, []byte(config.Dockerfile(pupsArgs, bakeEnv)), 0660); err != nil {
 		return errors.New("error writing dockerfile Dockerfile " + file)
 	}
