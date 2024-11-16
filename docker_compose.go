@@ -111,7 +111,7 @@ func WriteDockerCompose(configs []config.Config, dir string, bakeEnv bool) error
 
 	compose := &DockerComposeYaml{
 		Services: composeServices,
-		Volumes: composeVolumes,
+		Volumes:  composeVolumes,
 	}
 
 	var b bytes.Buffer
@@ -184,7 +184,7 @@ func (r *DockerComposeCmd) Run(cli *Cli, ctx *context.Context) error {
 	}
 
 	configs := []config.Config{}
-	for _, configName := range(r.Config) {
+	for _, configName := range r.Config {
 		config, err := config.LoadConfig(cli.ConfDir, configName, true, cli.TemplatesDir)
 		if err != nil {
 			return errors.New("YAML syntax error. Please check your containers/*.yml config files.")
@@ -192,7 +192,7 @@ func (r *DockerComposeCmd) Run(cli *Cli, ctx *context.Context) error {
 		configs = append(configs, *config)
 	}
 	if err := WriteDockerCompose(configs, dir, r.BakeEnv); err != nil {
-			return err
-		}
+		return err
+	}
 	return nil
 }
