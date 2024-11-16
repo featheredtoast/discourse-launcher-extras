@@ -9,8 +9,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/discourse/discourse_docker/launcher_go/v2/config"
-	"github.com/discourse/discourse_docker/launcher_go/v2/utils"
+	"github.com/discourse/launcher/v2/config"
+	"github.com/discourse/launcher/v2/utils"
 
 	"gopkg.in/yaml.v3"
 )

@@ -5,11 +5,8 @@ go 1.22
 toolchain go1.23.0
 
 require (
-	dario.cat/mergo v1.0.1
-	github.com/Wing924/shellwords v1.1.0
 	github.com/alecthomas/kong v0.9.0
-	github.com/discourse/discourse_docker/launcher_go/v2 v2.0.0-20240906161052-6c37c5dacda8
-	github.com/google/uuid v1.6.0
+	github.com/discourse/launcher/v2 v2.0.0-20241115213408-1ca23f3608bc
 	github.com/onsi/ginkgo/v2 v2.20.1
 	github.com/onsi/gomega v1.34.1
 	github.com/posener/complete v1.2.3
@@ -19,8 +16,8 @@ require (
 )
 
 require (
+	dario.cat/mergo v1.0.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
-	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/pprof v0.0.0-20240727154555-813a5fbdbec8 // indirect

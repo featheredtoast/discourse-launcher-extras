@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/alecthomas/kong"
-	"github.com/discourse/discourse_docker/launcher_go/v2/utils"
+	"github.com/discourse/launcher/v2/utils"
 	"github.com/posener/complete"
 	"github.com/willabides/kongplete"
 	"golang.org/x/sys/unix"
