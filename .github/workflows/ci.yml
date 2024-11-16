@@ -1,12 +1,12 @@
 name: ci
 
 on:
-  release:
-    types: [created]
   push:
     branches:
       - main
-  pull_request: {}
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+  pull_request:
 
 jobs:
   lint:
@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '>=1.21.0'
+          go-version: '>=1.22.0'
       - run: |
           if [ "$(gofmt -l . | wc -l)" -gt 0 ]; then
             exit 1
@@ -32,39 +32,28 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '>=1.21.0'
+          go-version: '>=1.22.0'
       - run: go test ./...
 
-  build_latest:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  create_release:
+    if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
     runs-on: ubuntu-latest
     needs: [lint, test]
-    strategy:
-      matrix:
-        goos: [linux, darwin]
-        goarch: ["386", amd64, arm64]
-        exclude:
-          - goarch: "386"
-            goos: darwin
     steps:
       - uses: actions/checkout@v4
-      - uses: wangyoucao577/go-release-action@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          binary_name: launcher-extras
-          overwrite: true
-          release_tag: latest
-
+      - name: build and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create ${{ github.ref_name }}
   build_release:
-    if: github.event_name == 'release'
+    if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [lint, test, create_release]
     strategy:
       matrix:
         goos: [linux, darwin]
@@ -74,9 +63,21 @@ jobs:
             goos: darwin
     steps:
       - uses: actions/checkout@v4
-      - uses: wangyoucao577/go-release-action@v1
+      - uses: actions/setup-go@v5
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          binary_name: launcher-extras
+          go-version: ">=1.22.0"
+      - name: build and release
+        working-directory: ./v2
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          BIN_FILE: launcher-extras
+          ZIP_FILE: launcher-extras-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+        run: |
+          go build -o bin/${BIN_FILE}
+          cd bin
+          tar cvfz ${ZIP_FILE} ${BIN_FILE}
+          MD5_SUM=$(md5sum ${ZIP_FILE} | cut -d ' ' -f 1)
+          echo ${MD5_SUM} > ${ZIP_FILE}.md5
+          gh release upload ${{ github.ref_name }} ${ZIP_FILE} ${ZIP_FILE}.md5
