@@ -50,7 +50,7 @@ func main() {
 	go func() {
 		select {
 		case <-sigChan:
-			fmt.Fprintln(utils.Out, "Command interrupted")
+			fmt.Fprintln(utils.Out, "Command interrupted") //nolint:errcheck
 			cancel()
 		case <-done:
 		}

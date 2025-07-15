@@ -32,7 +32,7 @@ var _ = Describe("Generate", func() {
 		}
 	})
 	AfterEach(func() {
-		os.RemoveAll(testDir)
+		os.RemoveAll(testDir) //nolint:errcheck
 	})
 
 	It("should output docker compose cmd to config name's subdir", func() {
@@ -57,7 +57,8 @@ var _ = Describe("Generate", func() {
 
 	It("can write a docker compose setup", func() {
 		conf, _ := config.LoadConfig("./test/containers", "test", true, "./test")
-		ddocker.WriteDockerCompose([]config.Config{*conf}, testDir)
+		err := ddocker.WriteDockerCompose([]config.Config{*conf}, testDir)
+		Expect(err).To(BeNil())
 		out, err := os.ReadFile(testDir + "/.envrc")
 		Expect(err).To(BeNil())
 		Expect(string(out[:])).To(ContainSubstring("export DISCOURSE_HOSTNAME"))

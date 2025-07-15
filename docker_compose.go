@@ -100,9 +100,13 @@ func WriteDockerCompose(configs []config.Config, dir string) error {
 		}
 		composeServices[config.Name] = DockerComposeService(config)
 
+		regex, err := regexp.Compile(`^[A-Za-z]`)
+		if err != nil {
+			return err
+		}
 		for _, v := range config.Volumes {
 			// if this is a docker volume (vs a bind mount), add to global volume list
-			matched, _ := regexp.MatchString(`^[A-Za-z]`, v.Volume.Host)
+			matched := regex.MatchString(v.Volume.Host)
 			if matched {
 				composeVolumes[v.Volume.Host] = nil
 			}
@@ -173,7 +177,7 @@ type DockerComposeCmd struct {
 
 func (r *DockerComposeCmd) Run(cli *Cli, ctx *context.Context) error {
 	if len(r.Config) < 1 {
-		return errors.New("No config given, need at least one container name.")
+		return errors.New("empty config array")
 	}
 
 	dir := r.OutputDir + "/" + r.Config[0]
