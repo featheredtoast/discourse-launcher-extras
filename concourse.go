@@ -100,7 +100,7 @@ func GenConcourseConfig(config config.Config) string {
 	concourseConfig := &ConcourseConfig{
 		FromNamespace: namespace,
 		FromTag:       tag,
-		Dockerfile:    config.Dockerfile("--skip-tags=precompile,migrate,db", false, "config.yaml"),
+		Dockerfile:    config.Dockerfile("--skip-tags=precompile,migrate,db", "config.yaml"),
 		ConcourseTask: getConcourseTask(config),
 		Config:        config.Yaml(),
 	}
@@ -128,7 +128,7 @@ type ConcourseJobCmd struct {
 func (r *ConcourseJobCmd) Run(cli *Cli) error {
 	loadedConfig, err := config.LoadConfig(cli.ConfDir, r.Config, true, cli.TemplatesDir)
 	if err != nil {
-		return errors.New("YAML syntax error. Please check your containers/*.yml config files.")
+		return err
 	}
 	if r.Output == "" {
 		fmt.Fprint(utils.Out, GenConcourseConfig(*loadedConfig))

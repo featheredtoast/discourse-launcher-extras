@@ -8,7 +8,7 @@ import (
 	"context"
 	"github.com/discourse/launcher/v2/config"
 	"github.com/discourse/launcher/v2/utils"
-	ddocker "github.com/featheredtoast/launcher-extras"
+	ddocker "github.com/featheredtoast/discourse-launcher-extras"
 	"os"
 )
 
@@ -57,7 +57,7 @@ var _ = Describe("Generate", func() {
 
 	It("can write a docker compose setup", func() {
 		conf, _ := config.LoadConfig("./test/containers", "test", true, "./test")
-		ddocker.WriteDockerCompose([]config.Config{*conf}, testDir, false)
+		ddocker.WriteDockerCompose([]config.Config{*conf}, testDir)
 		out, err := os.ReadFile(testDir + "/.envrc")
 		Expect(err).To(BeNil())
 		Expect(string(out[:])).To(ContainSubstring("export DISCOURSE_HOSTNAME"))
@@ -79,6 +79,7 @@ var _ = Describe("Generate", func() {
 		runner := ddocker.DockerComposeCmd{Config: []string{"web_only", "data"},
 			OutputDir: testDir}
 		err := runner.Run(cli, &ctx)
+		Expect(err).To(BeNil())
 
 		//expect envrc to be concatenated, with web_only last, as last-write-wins
 		out, err := os.ReadFile(testDir + "/web_only/.envrc")
@@ -126,16 +127,6 @@ export UNICORN_WORKERS="3"`))
 		out, err = os.ReadFile(testDir + "/web_only/web_only.dockerfile")
 		Expect(err).To(BeNil())
 		Expect(string(out[:])).To(ContainSubstring(`FROM ${dockerfile_from_image}
-ARG DISCOURSE_DB_HOST
-ARG DISCOURSE_DB_PASSWORD
-ARG DISCOURSE_DB_PORT
-ARG DISCOURSE_DB_SOCKET
-ARG DISCOURSE_DEVELOPER_EMAILS
-ARG DISCOURSE_HOSTNAME
-ARG DISCOURSE_REDIS_HOST
-ARG DISCOURSE_SMTP_ADDRESS
-ARG DISCOURSE_SMTP_PASSWORD
-ARG DISCOURSE_SMTP_USER_NAME
 ARG LANG
 ARG LANGUAGE
 ARG LC_ALL
@@ -145,6 +136,12 @@ ARG RUBY_GC_HEAP_INIT_SLOTS
 ARG RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR
 ARG UNICORN_SIDEKIQS
 ARG UNICORN_WORKERS
+ENV RAILS_ENV=${RAILS_ENV}
+ENV RUBY_GC_HEAP_GROWTH_MAX_SLOTS=${RUBY_GC_HEAP_GROWTH_MAX_SLOTS}
+ENV RUBY_GC_HEAP_INIT_SLOTS=${RUBY_GC_HEAP_INIT_SLOTS}
+ENV RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR=${RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR}
+ENV UNICORN_SIDEKIQS=${UNICORN_SIDEKIQS}
+ENV UNICORN_WORKERS=${UNICORN_WORKERS}
 EXPOSE 443
 EXPOSE 80
 COPY web_only.yaml /temp-config.yaml
@@ -184,16 +181,6 @@ CMD ["/sbin/boot"]`))
       labels: {}
       shm_size: 512m
       args:
-        - DISCOURSE_DB_HOST
-        - DISCOURSE_DB_PASSWORD
-        - DISCOURSE_DB_PORT
-        - DISCOURSE_DB_SOCKET
-        - DISCOURSE_DEVELOPER_EMAILS
-        - DISCOURSE_HOSTNAME
-        - DISCOURSE_REDIS_HOST
-        - DISCOURSE_SMTP_ADDRESS
-        - DISCOURSE_SMTP_PASSWORD
-        - DISCOURSE_SMTP_USER_NAME
         - LANG
         - LANGUAGE
         - LC_ALL
