@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -43,7 +42,7 @@ type ConcourseConfig struct {
 	Config        string
 }
 
-func getConcourseTask(config config.Config) string {
+func getConcourseTask(config config.Config) (string, error) {
 	content := []*yaml.Node{}
 	for k, v := range config.Env {
 		key := yaml.Node{
@@ -78,16 +77,19 @@ func getConcourseTask(config config.Config) string {
 	var b bytes.Buffer
 	encoder := yaml.NewEncoder(&b)
 	encoder.SetIndent(2)
-	encoder.Encode(&concourseTask)
+	if err := encoder.Encode(&concourseTask); err != nil {
+		return "", err
+	}
+
 	yaml := b.Bytes()
-	return string(yaml)
+	return string(yaml), nil
 }
 
 // generates a yaml file containing:
 // dockerfile, concoursetask, config
 // which may be used in a static concourse resource
 // to generate build jobs
-func GenConcourseConfig(config config.Config) string {
+func GenConcourseConfig(config config.Config) (string, error) {
 
 	const defaultBaseImage = "discourse/base:2.0.20240825-0027"
 	parts := strings.Split(defaultBaseImage, ":")
@@ -97,25 +99,35 @@ func GenConcourseConfig(config config.Config) string {
 		tag = parts[1]
 	}
 
+	task, err := getConcourseTask(config)
+	if err != nil {
+		return "", err
+	}
 	concourseConfig := &ConcourseConfig{
 		FromNamespace: namespace,
 		FromTag:       tag,
-		Dockerfile:    config.Dockerfile("--skip-tags=precompile,migrate,db", false),
-		ConcourseTask: getConcourseTask(config),
+		Dockerfile:    config.Dockerfile("--skip-tags=precompile,migrate,db", "config.yaml"),
+		ConcourseTask: task,
 		Config:        config.Yaml(),
 	}
 
 	var b bytes.Buffer
 	encoder := yaml.NewEncoder(&b)
 	encoder.SetIndent(2)
-	encoder.Encode(&concourseConfig)
+	if err := encoder.Encode(&concourseConfig); err != nil {
+		return "", err
+	}
 	yaml := b.Bytes()
-	return string(yaml)
+	return string(yaml), nil
 }
 
 func WriteConcourseConfig(config config.Config, file string) error {
-	if err := os.WriteFile(file, []byte(GenConcourseConfig(config)), 0660); err != nil {
-		return errors.New("error writing concourse job config " + file)
+	concourseConfig, err := GenConcourseConfig(config)
+	if err != nil {
+		return nil
+	}
+	if err := os.WriteFile(file, []byte(concourseConfig), 0660); err != nil {
+		return err
 	}
 	return nil
 }
@@ -128,12 +140,21 @@ type ConcourseJobCmd struct {
 func (r *ConcourseJobCmd) Run(cli *Cli) error {
 	loadedConfig, err := config.LoadConfig(cli.ConfDir, r.Config, true, cli.TemplatesDir)
 	if err != nil {
-		return errors.New("YAML syntax error. Please check your containers/*.yml config files.")
+		return err
 	}
 	if r.Output == "" {
-		fmt.Fprint(utils.Out, GenConcourseConfig(*loadedConfig))
+		concourseConfig, err := GenConcourseConfig(*loadedConfig)
+		if err != nil {
+			return err
+		}
+		_, err = fmt.Fprint(utils.Out, concourseConfig)
+		if err != nil {
+			return err
+		}
 	} else {
-		WriteConcourseConfig(*loadedConfig, r.Output)
+		if err = WriteConcourseConfig(*loadedConfig, r.Output); err != nil {
+			return err
+		}
 	}
 	return nil
 }
