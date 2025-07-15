@@ -62,7 +62,9 @@ var _ = Describe("Generate", func() {
 		Expect(err).To(BeNil())
 		out, err := os.ReadFile(testDir + "/.envrc")
 		Expect(err).To(BeNil())
-		Expect(string(out[:])).To(ContainSubstring("export DISCOURSE_HOSTNAME"))
+		// envrc does not export secrets since we don't build with them
+		Expect(string(out[:])).ToNot(ContainSubstring("export DISCOURSE_DB_PASSWORD"))
+		Expect(string(out[:])).To(ContainSubstring("export RAILS_ENV"))
 		out, err = os.ReadFile(testDir + "/test.yaml")
 		Expect(err).To(BeNil())
 		Expect(string(out[:])).To(ContainSubstring("DISCOURSE_DEVELOPER_EMAILS: 'me@example.com,you@example.com'"))
@@ -89,16 +91,6 @@ var _ = Describe("Generate", func() {
 		Expect(string(out[:])).To(ContainSubstring(`export LANG="en_US.UTF-8"
 export LANGUAGE="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
-export DISCOURSE_DB_HOST="data"
-export DISCOURSE_DB_PASSWORD="SOME_SECRET"
-export DISCOURSE_DB_PORT=""
-export DISCOURSE_DB_SOCKET=""
-export DISCOURSE_DEVELOPER_EMAILS="me@example.com,you@example.com"
-export DISCOURSE_HOSTNAME="discourse.example.com"
-export DISCOURSE_REDIS_HOST="data"
-export DISCOURSE_SMTP_ADDRESS="smtp.example.com"
-export DISCOURSE_SMTP_PASSWORD="pa$$word"
-export DISCOURSE_SMTP_USER_NAME="user@example.com"
 export LANG="en_US.UTF-8"
 export LANGUAGE="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"

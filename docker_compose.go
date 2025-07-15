@@ -155,14 +155,17 @@ func WriteEnvConfig(configs []config.Config, dir string) error {
 func ExportEnv(configs []config.Config) string {
 	builder := []string{}
 	// prioritize the first configs for env
+	// last write wins, so load the first config last
 	slices.Reverse(configs)
 	for _, config := range configs {
 		// Sort env within a config
 		configEnv := []string{}
 		for k, v := range config.Env {
-			val := strings.ReplaceAll(v, "\\", "\\\\")
-			val = strings.ReplaceAll(val, "\"", "\\\"")
-			configEnv = append(configEnv, "export "+k+"=\""+val+"\"")
+			if !slices.Contains(utils.KnownSecrets, k) {
+				val := strings.ReplaceAll(v, "\\", "\\\\")
+				val = strings.ReplaceAll(val, "\"", "\\\"")
+				configEnv = append(configEnv, "export "+k+"=\""+val+"\"")
+			}
 		}
 		slices.Sort(configEnv)
 		builder = append(builder, strings.Join(configEnv, "\n"))
