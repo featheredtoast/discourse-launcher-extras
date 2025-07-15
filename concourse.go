@@ -147,7 +147,8 @@ func (r *ConcourseJobCmd) Run(cli *Cli) error {
 		if err != nil {
 			return err
 		}
-		_, err = fmt.Fprint(utils.Out, concourseConfig); if err != nil {
+		_, err = fmt.Fprint(utils.Out, concourseConfig)
+		if err != nil {
 			return err
 		}
 	} else {

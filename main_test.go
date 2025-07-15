@@ -6,10 +6,11 @@ import (
 
 	"bytes"
 	"context"
+	"os"
+
 	"github.com/discourse/launcher/v2/config"
 	"github.com/discourse/launcher/v2/utils"
 	ddocker "github.com/featheredtoast/discourse-launcher-extras"
-	"os"
 )
 
 var _ = Describe("Generate", func() {

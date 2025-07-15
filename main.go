@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+
 	"github.com/alecthomas/kong"
 	"github.com/discourse/launcher/v2/utils"
 	"github.com/posener/complete"
 	"github.com/willabides/kongplete"
 	"golang.org/x/sys/unix"
-	"os"
-	"os/signal"
 )
 
 type Cli struct {
