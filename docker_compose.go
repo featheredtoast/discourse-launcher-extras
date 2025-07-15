@@ -167,8 +167,8 @@ func ExportEnv(configs []config.Config) string {
 }
 
 type DockerComposeCmd struct {
-	OutputDir string `name:"output dir" default:"./compose" short:"o" help:"Output dir for docker compose files." predictor:"dir"`
-	Config []string `arg:"" name:"config" help:"config to include in the docker-compose. The first config is assumed to be the main container, and will be the parent folder of the ouput project" predictor:"config"`
+	OutputDir string   `name:"output dir" default:"./compose" short:"o" help:"Output dir for docker compose files." predictor:"dir"`
+	Config    []string `arg:"" name:"config" help:"config to include in the docker-compose. The first config is assumed to be the main container, and will be the parent folder of the ouput project" predictor:"config"`
 }
 
 func (r *DockerComposeCmd) Run(cli *Cli, ctx *context.Context) error {
